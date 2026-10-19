@@ -3,10 +3,11 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DashboardScreen } from './src/screens/DashboardScreen';
+import { BudgetsScreen } from './src/screens/BudgetsScreen';
 import { HistoryScreen } from './src/screens/HistoryScreen';
 import { COLORS, FONTS, RADIUS, SPACING } from './src/constants/theme';
 
-type Tab = 'dashboard' | 'history';
+type Tab = 'dashboard' | 'budgets' | 'history';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<Tab>('dashboard');
@@ -25,6 +26,11 @@ export default function App() {
         {currentTab === 'dashboard' ? (
           <DashboardScreen
             onNavigateToHistory={() => setCurrentTab('history')}
+            refreshTrigger={refreshKey}
+            onDataChanged={handleDataChanged}
+          />
+        ) : currentTab === 'budgets' ? (
+          <BudgetsScreen
             refreshTrigger={refreshKey}
             onDataChanged={handleDataChanged}
           />
@@ -58,6 +64,29 @@ export default function App() {
             ]}
           >
             Dashboard
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tabItem, currentTab === 'budgets' && styles.tabItemActive]}
+          onPress={() => setCurrentTab('budgets')}
+          activeOpacity={0.7}
+        >
+          <Text
+            style={[
+              styles.tabIcon,
+              currentTab === 'budgets' && styles.tabIconActive,
+            ]}
+          >
+            🎯
+          </Text>
+          <Text
+            style={[
+              styles.tabLabel,
+              currentTab === 'budgets' && styles.tabLabelActive,
+            ]}
+          >
+            Budgets
           </Text>
         </TouchableOpacity>
 
