@@ -15,11 +15,14 @@ import {
   NewTransactionInput,
   SummaryMetrics,
   Transaction,
+  TransactionType,
   UpdateTransactionInput,
 } from '../types/transaction';
+import { BudgetProgress } from '../types/budget';
 import { Header } from '../components/Header';
 import { BalanceCard } from '../components/BalanceCard';
-import { IncomeExpenseSummary } from '../components/IncomeExpenseSummary';
+import { DashboardQuickActions } from '../components/DashboardQuickActions';
+import { BudgetOverviewSummary } from '../components/BudgetOverviewSummary';
 import { TransactionList } from '../components/TransactionList';
 import { TransactionModal } from '../components/TransactionModal';
 import { SettingsModal } from '../components/SettingsModal';
@@ -33,6 +36,8 @@ import {
   seedSampleTransactions,
   updateTransaction,
 } from '../db/transactionRepository';
+import { getBudgetDataForPeriod } from '../db/budgetRepository';
+import { getDefaultPeriod } from '../utils/budgetPeriods';
 
 const DEFAULT_METRICS: SummaryMetrics = {
   netCashflow: 0,
@@ -44,12 +49,18 @@ const DEFAULT_METRICS: SummaryMetrics = {
 
 interface DashboardScreenProps {
   onNavigateToHistory?: () => void;
+  onNavigateToBudgets?: () => void;
+  onNavigateToWallet?: () => void;
+  onNavigateToReports?: () => void;
   refreshTrigger?: number;
   onDataChanged?: () => void;
 }
 
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   onNavigateToHistory,
+  onNavigateToBudgets,
+  onNavigateToWallet,
+  onNavigateToReports,
   refreshTrigger = 0,
   onDataChanged,
 }) => {
@@ -60,9 +71,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [metrics, setMetrics] = useState<SummaryMetrics>(DEFAULT_METRICS);
+  const [weeklyBudget, setWeeklyBudget] = useState<BudgetProgress | null>(null);
+  const [monthlyBudget, setMonthlyBudget] = useState<BudgetProgress | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
   const [addModalVisible, setAddModalVisible] = useState(false);
+  const [modalInitialType, setModalInitialType] = useState<TransactionType>('expense');
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
@@ -82,21 +96,25 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     initialize();
   }, [initialize]);
 
-  // 2. Fetch Transactions & Metrics from SQLite
+  // 2. Fetch Transactions, Metrics & Budgets from SQLite
   const loadDashboardData = useCallback(
     async (filter: FilterType = activeFilter) => {
       if (!isDbReady) return;
 
       try {
         setIsLoadingData(true);
-        const [fetchedTransactions, summary] = await Promise.all([
+        const [fetchedTransactions, summary, weeklyData, monthlyData] = await Promise.all([
           // Limit to 10 most recent on the dashboard overview
           getTransactions({ type: filter, limit: 10 }),
           getSummaryMetrics(),
+          getBudgetDataForPeriod(getDefaultPeriod('weekly')),
+          getBudgetDataForPeriod(getDefaultPeriod('monthly')),
         ]);
 
         setTransactions(fetchedTransactions);
         setMetrics(summary);
+        setWeeklyBudget(weeklyData.overallBudget);
+        setMonthlyBudget(monthlyData.overallBudget);
       } catch (err: any) {
         console.error('[Dashboard] Error reading from SQLite:', err);
       } finally {
@@ -116,6 +134,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   const handleFilterChange = (newFilter: FilterType) => {
     setActiveFilter(newFilter);
     loadDashboardData(newFilter);
+  };
+
+  const handleOpenAdd = (type: TransactionType = 'expense') => {
+    setModalInitialType(type);
+    setEditingTransaction(null);
+    setAddModalVisible(true);
   };
 
   const handleSaveTransaction = async (input: NewTransactionInput) => {
@@ -179,7 +203,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.accentGreen} />
+          <ActivityIndicator size="large" color={COLORS.accentBlue} />
           <Text style={styles.loadingText}>Initializing Pocket Ledger...</Text>
         </View>
       </SafeAreaView>
@@ -197,8 +221,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor={COLORS.accentGreen}
-              colors={[COLORS.accentGreen]}
+              tintColor={COLORS.accentBlue}
+              colors={[COLORS.accentBlue]}
               progressBackgroundColor={COLORS.surfaceElevated}
             />
           }
@@ -209,20 +233,31 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             transactionCount={metrics.transactionCount}
           />
 
-          {/* Net Cash Flow Card */}
+          {/* Prominent Net Cash Flow Hero Card */}
           <BalanceCard
             netCashflow={metrics.netCashflow}
             monthlyNet={metrics.monthlyNet}
+            monthlyIncome={metrics.monthlyIncome}
+            monthlyExpense={metrics.monthlyExpense}
             transactionCount={metrics.transactionCount}
           />
 
-          {/* Monthly Inflow & Outflow Summaries */}
-          <IncomeExpenseSummary
-            income={metrics.monthlyIncome}
-            expense={metrics.monthlyExpense}
+          {/* Quick Actions Shortcuts */}
+          <DashboardQuickActions
+            onAddExpense={() => handleOpenAdd('expense')}
+            onAddIncome={() => handleOpenAdd('income')}
+            onNavigateToWallet={() => onNavigateToWallet?.()}
+            onNavigateToReports={() => onNavigateToReports?.()}
           />
 
-          {/* Recent Transactions List with Active Filter & View All */}
+          {/* Compact Weekly & Monthly Budget Overview */}
+          <BudgetOverviewSummary
+            weeklyProgress={weeklyBudget}
+            monthlyProgress={monthlyBudget}
+            onNavigateToBudgets={() => onNavigateToBudgets?.()}
+          />
+
+          {/* Recent Activity List with Active Filter & View All */}
           <TransactionList
             transactions={transactions}
             activeFilter={activeFilter}
@@ -233,16 +268,16 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
           />
         </ScrollView>
 
-        {/* Prominent Floating Add Transaction Action Button */}
+        {/* Floating Add Transaction Action Button */}
         <View style={styles.fabContainer}>
           <TouchableOpacity
             style={styles.fabButton}
-            onPress={() => setAddModalVisible(true)}
+            onPress={() => handleOpenAdd('expense')}
             activeOpacity={0.85}
             accessibilityLabel="Add New Transaction"
           >
             <Text style={styles.fabPlus}>+</Text>
-            <Text style={styles.fabLabel}>Add Transaction</Text>
+            <Text style={styles.fabLabel}>Record Transaction</Text>
           </TouchableOpacity>
         </View>
 
@@ -250,6 +285,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         <TransactionModal
           visible={addModalVisible || editingTransaction !== null}
           transaction={editingTransaction}
+          initialType={modalInitialType}
           onClose={() => {
             setAddModalVisible(false);
             setEditingTransaction(null);
@@ -290,11 +326,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 130,
+    paddingBottom: 110,
   },
   fabContainer: {
     position: 'absolute',
-    bottom: SPACING.lg,
+    bottom: SPACING.md,
     left: SPACING.lg,
     right: SPACING.lg,
     alignItems: 'center',
@@ -303,15 +339,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.accentGreen,
-    paddingVertical: 14,
+    backgroundColor: COLORS.accentBlueVivid,
+    paddingVertical: 13,
     paddingHorizontal: SPACING.xl,
     borderRadius: RADIUS.pill,
     width: '100%',
-    shadowColor: COLORS.accentGreen,
+    shadowColor: COLORS.accentBlue,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
     elevation: 6,
     gap: 8,
   },
@@ -322,7 +358,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   fabLabel: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: COLORS.buttonPrimaryText,
     fontFamily: FONTS.sansMedium,

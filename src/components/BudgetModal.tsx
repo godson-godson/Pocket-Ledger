@@ -163,6 +163,11 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.overlay}
       >
+        <TouchableOpacity
+          style={styles.backdropTouchable}
+          activeOpacity={1}
+          onPress={onClose}
+        />
         <View style={styles.sheetContainer}>
           {/* Header */}
           <View style={styles.header}>
@@ -356,6 +361,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.overlay,
     justifyContent: 'flex-end',
   },
+  backdropTouchable: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   sheetContainer: {
     backgroundColor: COLORS.surface,
     borderTopLeftRadius: RADIUS.xl,
@@ -467,8 +479,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   categoryPillActive: {
-    borderColor: COLORS.accentGreen,
-    backgroundColor: COLORS.accentGreenBg,
+    borderColor: COLORS.accentBlue,
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
   },
   categoryPillIcon: {
     fontSize: 15,
@@ -479,7 +491,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   categoryPillTextActive: {
-    color: COLORS.accentGreen,
+    color: COLORS.accentBlueLight,
     fontWeight: '700',
   },
   amountInputWrapper: {
@@ -495,7 +507,7 @@ const styles = StyleSheet.create({
   rupeeSign: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.accentGreen,
+    color: COLORS.accentBlueLight,
     marginRight: SPACING.sm,
   },
   amountInput: {
@@ -574,7 +586,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     flex: 1,
-    backgroundColor: COLORS.accentGreen,
+    backgroundColor: COLORS.accentBlueVivid,
     borderRadius: RADIUS.md,
     paddingVertical: 14,
     alignItems: 'center',

@@ -1,105 +1,104 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { COLORS, FONTS, RADIUS, SPACING } from '../constants/theme';
-import { formatINR } from '../utils/formatters';
+import { formatCurrentMonth, formatINR } from '../utils/formatters';
 
 interface BalanceCardProps {
-  netCashflow: number; // Recorded Income minus Recorded Expenses (Rupees)
-  monthlyNet: number; // Current month recorded net (Rupees)
+  netCashflow: number;
+  monthlyNet: number;
   transactionCount: number;
+  monthlyIncome?: number;
+  monthlyExpense?: number;
 }
 
 export const BalanceCard: React.FC<BalanceCardProps> = ({
   netCashflow,
   monthlyNet,
   transactionCount,
+  monthlyIncome = 0,
+  monthlyExpense = 0,
 }) => {
-  const isPositiveCashflow = netCashflow >= 0;
   const isPositiveMonth = monthlyNet >= 0;
+  const isPositiveCumulative = netCashflow >= 0;
 
   return (
-    <View style={styles.container}>
-      {/* Decorative top accent line */}
-      <View
-        style={[
-          styles.topAccentBar,
-          {
-            backgroundColor:
-              transactionCount === 0
-                ? COLORS.borderLight
-                : isPositiveCashflow
-                ? COLORS.accentGreen
-                : COLORS.accentRose,
-          },
-        ]}
-      />
-
-      <View style={styles.content}>
+    <View style={styles.wrapper}>
+      <View style={styles.card}>
+        {/* Header row */}
         <View style={styles.headerRow}>
-          <Text style={styles.label}>RECORDED NET CASH FLOW</Text>
-          <View style={styles.enginePill}>
-            <Text style={styles.engineText}>LOCAL SQLITE</Text>
+          <View style={styles.headerLeft}>
+            <Text style={styles.monthLabel}>{formatCurrentMonth().toUpperCase()}</Text>
+            <Text style={styles.cardTitle}>NET CASH FLOW</Text>
+          </View>
+          <View style={styles.localBadge}>
+            <View style={styles.localDot} />
+            <Text style={styles.localText}>LOCAL</Text>
           </View>
         </View>
 
-        <Text
-          style={[
-            styles.balanceAmount,
-            transactionCount > 0 && {
-              color: isPositiveCashflow ? COLORS.textPrimary : COLORS.accentRose,
-            },
-          ]}
-        >
-          {transactionCount === 0
-            ? '₹0.00'
-            : formatINR(netCashflow, {
-                showDecimals: true,
-                sign: netCashflow !== 0,
-              })}
-        </Text>
-
-        {/* Clear explanation that this is strictly recorded income minus expenses */}
-        <View style={styles.clarificationRow}>
-          <Text style={styles.clarificationText}>
+        {/* Main amount */}
+        <View style={styles.amountSection}>
+          <Text
+            style={[
+              styles.mainAmount,
+              transactionCount > 0 && !isPositiveMonth && { color: COLORS.accentRose },
+              transactionCount > 0 && isPositiveMonth && { color: COLORS.textPrimary },
+            ]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
             {transactionCount === 0
-              ? 'Start tracking by tapping "+ Add Transaction" below'
-              : 'Cumulative Total: Recorded Income − Recorded Expenses'}
+              ? '₹0.00'
+              : formatINR(monthlyNet, { showDecimals: true, sign: monthlyNet !== 0 })}
+          </Text>
+          <Text style={styles.clarification}>
+            {transactionCount === 0
+              ? 'No transactions logged this month'
+              : 'Recorded income minus recorded expenses'}
           </Text>
         </View>
 
-        <View style={styles.footerRow}>
-          <View style={styles.savingsTag}>
-            <Text
-              style={[
-                styles.savingsIcon,
-                { color: isPositiveMonth ? COLORS.accentGreen : COLORS.accentRose },
-              ]}
-            >
-              {transactionCount === 0 ? '•' : isPositiveMonth ? '▲' : '▼'}
-            </Text>
-            <Text
-              style={[
-                styles.savingsText,
-                {
-                  color:
-                    transactionCount === 0
-                      ? COLORS.textMuted
-                      : isPositiveMonth
-                      ? COLORS.accentGreen
-                      : COLORS.accentRose,
-                },
-              ]}
-            >
-              {transactionCount === 0
-                ? 'No activity this month'
-                : `${isPositiveMonth ? '+' : ''}${formatINR(monthlyNet, {
-                    showDecimals: false,
-                  })} net this month`}
-            </Text>
+        {/* Inflow / Outflow row */}
+        <View style={styles.flowRow}>
+          <View style={styles.flowItem}>
+            <View style={[styles.flowIconBox, styles.flowIconIncome]}>
+              <Text style={styles.flowIconTextIncome}>+</Text>
+            </View>
+            <View>
+              <Text style={styles.flowLabel}>INCOME</Text>
+              <Text style={styles.flowValueIncome}>{formatINR(monthlyIncome)}</Text>
+            </View>
           </View>
 
-          <Text style={styles.ledgerStatus}>
-            {transactionCount === 1 ? '1 RECORD' : `${transactionCount} RECORDS`}
+          <View style={styles.flowDivider} />
+
+          <View style={styles.flowItem}>
+            <View style={[styles.flowIconBox, styles.flowIconExpense]}>
+              <Text style={styles.flowIconTextExpense}>−</Text>
+            </View>
+            <View>
+              <Text style={styles.flowLabel}>EXPENSES</Text>
+              <Text style={styles.flowValueExpense}>{formatINR(monthlyExpense)}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerLabel}>All-time net</Text>
+          <Text
+            style={[
+              styles.footerValue,
+              { color: isPositiveCumulative ? COLORS.accentBlueLight : COLORS.accentRose },
+            ]}
+          >
+            {transactionCount === 0
+              ? '₹0.00'
+              : formatINR(netCashflow, { sign: netCashflow !== 0 })}
+          </Text>
+          <View style={styles.footerSpacer} />
+          <Text style={styles.footerCount}>
+            {transactionCount} {transactionCount === 1 ? 'record' : 'records'}
           </Text>
         </View>
       </View>
@@ -108,95 +107,173 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     marginHorizontal: SPACING.lg,
-    marginVertical: SPACING.sm,
+    marginTop: SPACING.xs,
+    marginBottom: SPACING.sm,
+  },
+  card: {
     backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.xl,
     borderWidth: 1,
     borderColor: COLORS.border,
-    overflow: 'hidden',
-  },
-  topAccentBar: {
-    height: 3,
-    opacity: 0.9,
-  },
-  content: {
     padding: SPACING.lg,
+    gap: SPACING.md,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.xs,
+    alignItems: 'flex-start',
   },
-  label: {
-    fontSize: 11,
+  headerLeft: {
+    gap: 2,
+  },
+  monthLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+    fontFamily: FONTS.mono,
+    letterSpacing: 0.8,
+  },
+  cardTitle: {
+    fontSize: 12,
     fontWeight: '700',
     color: COLORS.textSecondary,
-    letterSpacing: 1,
-    fontFamily: FONTS.mono,
-  },
-  enginePill: {
-    backgroundColor: COLORS.surfaceElevated,
-    borderColor: COLORS.borderLight,
-    borderWidth: 1,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: RADIUS.xs,
-  },
-  engineText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: COLORS.accentGreen,
     fontFamily: FONTS.mono,
     letterSpacing: 0.6,
   },
-  balanceAmount: {
-    fontSize: 34,
+  localBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surfaceElevated,
+    borderColor: COLORS.border,
+    borderWidth: 1,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: RADIUS.pill,
+    gap: 4,
+  },
+  localDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: COLORS.accentBlue,
+  },
+  localText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+    fontFamily: FONTS.mono,
+    letterSpacing: 0.5,
+  },
+  amountSection: {
+    gap: 3,
+  },
+  mainAmount: {
+    fontSize: 36,
     fontWeight: '700',
     color: COLORS.textPrimary,
     fontFamily: FONTS.mono,
-    letterSpacing: -0.5,
-    marginTop: SPACING.xs,
-    marginBottom: 4,
+    letterSpacing: -0.8,
   },
-  clarificationRow: {
-    marginBottom: SPACING.sm,
-  },
-  clarificationText: {
+  clarification: {
     fontSize: 11,
     color: COLORS.textMuted,
     fontFamily: FONTS.sans,
   },
-  footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-    paddingTop: SPACING.sm,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
-  savingsTag: {
+  flowRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    flexShrink: 1,
+    backgroundColor: COLORS.surfaceElevated,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingVertical: 10,
+    paddingHorizontal: SPACING.md,
   },
-  savingsIcon: {
-    fontSize: 11,
+  flowItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  flowIconBox: {
+    width: 26,
+    height: 26,
+    borderRadius: RADIUS.xs,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  flowIconIncome: {
+    backgroundColor: COLORS.accentGreenBg,
+    borderColor: COLORS.accentGreenBorder,
+  },
+  flowIconExpense: {
+    backgroundColor: COLORS.surfaceHighlight,
+    borderColor: COLORS.border,
+  },
+  flowIconTextIncome: {
+    color: COLORS.accentGreen,
+    fontSize: 14,
     fontWeight: '700',
+    lineHeight: 16,
   },
-  savingsText: {
-    fontSize: 11,
-    fontWeight: '600',
-    fontFamily: FONTS.mono,
+  flowIconTextExpense: {
+    color: COLORS.textSecondary,
+    fontSize: 16,
+    fontWeight: '700',
+    lineHeight: 16,
   },
-  ledgerStatus: {
-    fontSize: 10,
+  flowLabel: {
+    fontSize: 9,
+    fontWeight: '700',
     color: COLORS.textMuted,
     fontFamily: FONTS.mono,
     letterSpacing: 0.5,
+  },
+  flowValueIncome: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.accentGreen,
+    fontFamily: FONTS.mono,
+  },
+  flowValueExpense: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    fontFamily: FONTS.mono,
+  },
+  flowDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: COLORS.border,
+    marginHorizontal: SPACING.sm,
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: SPACING.sm,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.borderSubtle,
+  },
+  footerLabel: {
+    fontSize: 11,
+    color: COLORS.textMuted,
+  },
+  footerValue: {
+    fontSize: 11,
+    fontWeight: '700',
+    fontFamily: FONTS.mono,
+    marginLeft: 5,
+  },
+  footerSpacer: {
+    flex: 1,
+  },
+  footerCount: {
+    fontSize: 10,
+    color: COLORS.textMuted,
+    fontFamily: FONTS.mono,
+    letterSpacing: 0.3,
   },
 });

@@ -168,3 +168,52 @@ export function shiftMonthlyPeriod(
 export function getDefaultPeriod(periodType: BudgetPeriodType): PeriodInfo {
   return periodType === 'weekly' ? getWeeklyPeriod() : getMonthlyPeriod();
 }
+
+export interface RecentMonthInfo {
+  monthKey: string;
+  startDate: string;
+  endDate: string;
+  year: number;
+  label: string;
+  shortLabel: string;
+  isCurrent: boolean;
+}
+
+/**
+ * Returns the latest six calendar months leading up to and including the reference month.
+ * Ordered chronologically (oldest to newest).
+ */
+export function getRecentSixMonths(baseDate: Date = new Date()): RecentMonthInfo[] {
+  const currentYear = baseDate.getFullYear();
+  const currentMonth = baseDate.getMonth();
+
+  const months: RecentMonthInfo[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const firstDay = new Date(currentYear, currentMonth - i, 1);
+    const lastDay = new Date(currentYear, currentMonth - i + 1, 0);
+
+    const year = firstDay.getFullYear();
+    const monthNum = String(firstDay.getMonth() + 1).padStart(2, '0');
+    const monthKey = `${year}-${monthNum}`;
+
+    const startDay = String(firstDay.getDate()).padStart(2, '0');
+    const endDay = String(lastDay.getDate()).padStart(2, '0');
+
+    months.push({
+      monthKey,
+      startDate: `${year}-${monthNum}-${startDay}`,
+      endDate: `${year}-${monthNum}-${endDay}`,
+      year,
+      label: firstDay.toLocaleDateString('en-IN', {
+        month: 'long',
+        year: 'numeric',
+      }),
+      shortLabel: firstDay.toLocaleDateString('en-IN', {
+        month: 'short',
+      }),
+      isCurrent: i === 0,
+    });
+  }
+  return months;
+}
+

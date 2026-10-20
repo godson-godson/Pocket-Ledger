@@ -34,14 +34,16 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
         </Text>
         <View style={styles.subInfoRow}>
           <Text style={styles.categoryName}>{transaction.categoryName}</Text>
-          {transaction.note ? (
+          <Text style={styles.dot}>·</Text>
+          <Text style={styles.date}>{formatDate(transaction.date)}</Text>
+          {Boolean(transaction.note) && (
             <>
-              <Text style={styles.dot}>•</Text>
+              <Text style={styles.dot}>·</Text>
               <Text style={styles.note} numberOfLines={1}>
                 {transaction.note}
               </Text>
             </>
-          ) : null}
+          )}
         </View>
       </View>
 
@@ -52,12 +54,12 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
             isIncome ? styles.amountIncome : styles.amountExpense,
           ]}
         >
-          {formatINR(isIncome ? transaction.amount : -transaction.amount, {
-            showDecimals: 'auto',
-            sign: true,
-          })}
+          {isIncome ? '+' : '−'}{' '}
+          {formatINR(transaction.amount, { showDecimals: 'auto', sign: false })}
         </Text>
-        <Text style={styles.date}>{formatDate(transaction.date)}</Text>
+        <Text style={[styles.typeLabel, isIncome ? styles.typeLabelIncome : styles.typeLabelExpense]}>
+          {isIncome ? 'INCOME' : 'EXPENSE'}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -67,11 +69,11 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
+    paddingVertical: 11,
+    paddingHorizontal: SPACING.md,
     backgroundColor: COLORS.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: COLORS.divider,
     gap: SPACING.md,
   },
   detailsColumn: {
@@ -79,39 +81,46 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     color: COLORS.textPrimary,
+    fontFamily: FONTS.sansMedium,
     marginBottom: 3,
   },
   subInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    flexWrap: 'nowrap',
   },
   categoryName: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
+    fontSize: 11,
+    color: COLORS.textMuted,
     fontWeight: '500',
   },
   dot: {
     fontSize: 10,
+    color: COLORS.textDisabled,
+  },
+  date: {
+    fontSize: 11,
     color: COLORS.textMuted,
+    fontFamily: FONTS.mono,
   },
   note: {
-    fontSize: 12,
+    fontSize: 11,
     color: COLORS.textMuted,
     flexShrink: 1,
   },
   amountColumn: {
     alignItems: 'flex-end',
     justifyContent: 'center',
+    gap: 2,
   },
   amount: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     fontFamily: FONTS.mono,
-    marginBottom: 2,
   },
   amountIncome: {
     color: COLORS.accentGreen,
@@ -119,9 +128,16 @@ const styles = StyleSheet.create({
   amountExpense: {
     color: COLORS.textPrimary,
   },
-  date: {
-    fontSize: 11,
-    color: COLORS.textMuted,
+  typeLabel: {
+    fontSize: 8,
+    fontWeight: '700',
     fontFamily: FONTS.mono,
+    letterSpacing: 0.5,
+  },
+  typeLabelIncome: {
+    color: COLORS.accentGreenMuted,
+  },
+  typeLabelExpense: {
+    color: COLORS.textDisabled,
   },
 });

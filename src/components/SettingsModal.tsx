@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.xl,
     borderWidth: 1,
     borderColor: COLORS.border,
     padding: SPACING.lg,
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   },
   infoValHighlight: {
     fontSize: 12,
-    color: COLORS.accentGreen,
+    color: COLORS.accentBlueLight,
     fontFamily: FONTS.mono,
     fontWeight: '600',
   },

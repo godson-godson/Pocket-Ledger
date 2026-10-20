@@ -35,11 +35,13 @@ import {
 import { formatINR } from '../utils/formatters';
 
 interface BudgetsScreenProps {
+  onNavigateBack?: () => void;
   refreshTrigger?: number;
   onDataChanged?: () => void;
 }
 
 export const BudgetsScreen: React.FC<BudgetsScreenProps> = ({
+  onNavigateBack,
   refreshTrigger = 0,
   onDataChanged,
 }) => {
@@ -162,7 +164,7 @@ export const BudgetsScreen: React.FC<BudgetsScreenProps> = ({
         return COLORS.accentAmber;
       case 'normal':
       default:
-        return COLORS.accentGreen;
+        return COLORS.accentBlue;
     }
   };
 
@@ -174,7 +176,7 @@ export const BudgetsScreen: React.FC<BudgetsScreenProps> = ({
         return COLORS.accentAmberBg;
       case 'normal':
       default:
-        return COLORS.accentGreenBg;
+        return COLORS.accentBlueBg;
     }
   };
 
@@ -182,6 +184,16 @@ export const BudgetsScreen: React.FC<BudgetsScreenProps> = ({
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Screen Header */}
       <View style={styles.header}>
+        {onNavigateBack && (
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={onNavigateBack}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.backButtonText}>← Overview</Text>
+          </TouchableOpacity>
+        )}
         <View>
           <View style={styles.headerTitleRow}>
             <Text style={styles.headerTitle}>Budgets & Limits</Text>
@@ -293,7 +305,7 @@ export const BudgetsScreen: React.FC<BudgetsScreenProps> = ({
         </View>
       ) : isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.accentGreen} />
+          <ActivityIndicator size="large" color={COLORS.accentBlue} />
           <Text style={styles.loadingText}>Calculating budgets & spending...</Text>
         </View>
       ) : (
@@ -305,8 +317,8 @@ export const BudgetsScreen: React.FC<BudgetsScreenProps> = ({
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              tintColor={COLORS.accentGreen}
-              colors={[COLORS.accentGreen]}
+              tintColor={COLORS.accentBlue}
+              colors={[COLORS.accentBlue]}
             />
           }
         >
@@ -621,6 +633,16 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.md,
     paddingBottom: SPACING.sm,
   },
+  backButton: {
+    paddingVertical: 4,
+    marginBottom: SPACING.xs,
+  },
+  backButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.accentBlueLight,
+    fontFamily: FONTS.mono,
+  },
   headerTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -636,8 +658,8 @@ const styles = StyleSheet.create({
   offlineBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.accentGreenBg,
-    borderColor: COLORS.accentGreenBorder,
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+    borderColor: 'rgba(59, 130, 246, 0.3)',
     borderWidth: 1,
     paddingHorizontal: 7,
     paddingVertical: 2,
@@ -648,12 +670,12 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: COLORS.accentGreen,
+    backgroundColor: COLORS.accentBlueLight,
   },
   offlineBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: COLORS.accentGreen,
+    color: COLORS.accentBlueLight,
     letterSpacing: 0.6,
   },
   headerSubtitle: {
@@ -680,9 +702,9 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.sm,
   },
   periodSwitcherBtnActive: {
-    backgroundColor: COLORS.surfaceHighlight,
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
+    borderColor: 'rgba(59, 130, 246, 0.35)',
   },
   periodSwitcherText: {
     fontSize: 13,
@@ -691,7 +713,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.mono,
   },
   periodSwitcherTextActive: {
-    color: COLORS.accentGreen,
+    color: COLORS.accentBlueLight,
     fontWeight: '700',
   },
   navBar: {
@@ -730,8 +752,8 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.mono,
   },
   currentPill: {
-    backgroundColor: COLORS.accentGreenBg,
-    borderColor: COLORS.accentGreenBorder,
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    borderColor: 'rgba(59, 130, 246, 0.3)',
     borderWidth: 1,
     paddingHorizontal: 6,
     paddingVertical: 1,
@@ -740,7 +762,7 @@ const styles = StyleSheet.create({
   currentPillText: {
     fontSize: 9,
     fontWeight: '700',
-    color: COLORS.accentGreen,
+    color: COLORS.accentBlueLight,
     fontFamily: FONTS.mono,
     letterSpacing: 0.5,
   },
@@ -780,7 +802,7 @@ const styles = StyleSheet.create({
   },
   editActionText: {
     fontSize: 12,
-    color: COLORS.accentGreen,
+    color: COLORS.accentBlueLight,
     fontWeight: '600',
     fontFamily: FONTS.mono,
   },
@@ -818,8 +840,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   badgeNormal: {
-    backgroundColor: COLORS.accentGreenBg,
-    borderColor: COLORS.accentGreenBorder,
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+    borderColor: 'rgba(59, 130, 246, 0.3)',
     borderWidth: 1,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -828,7 +850,7 @@ const styles = StyleSheet.create({
   badgeNormalText: {
     fontSize: 10,
     fontWeight: '700',
-    color: COLORS.accentGreen,
+    color: COLORS.accentBlueLight,
     fontFamily: FONTS.mono,
   },
   badgeWarning: {
@@ -932,15 +954,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   setOverallBtn: {
-    backgroundColor: COLORS.surfaceHighlight,
-    borderColor: COLORS.accentGreenBorder,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderColor: 'rgba(59, 130, 246, 0.35)',
     borderWidth: 1,
     paddingVertical: 12,
     borderRadius: RADIUS.md,
     alignItems: 'center',
   },
   setOverallBtnText: {
-    color: COLORS.accentGreen,
+    color: COLORS.accentBlueLight,
     fontWeight: '700',
     fontSize: 14,
     fontFamily: FONTS.sansMedium,
@@ -951,7 +973,7 @@ const styles = StyleSheet.create({
   },
   addCategoryHeaderBtnText: {
     fontSize: 12,
-    color: COLORS.accentGreen,
+    color: COLORS.accentBlueLight,
     fontWeight: '600',
     fontFamily: FONTS.mono,
   },
@@ -1070,15 +1092,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
   },
   addCategoryBtn: {
-    backgroundColor: COLORS.surfaceHighlight,
-    borderColor: COLORS.accentGreenBorder,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderColor: 'rgba(59, 130, 246, 0.35)',
     borderWidth: 1,
     paddingHorizontal: SPACING.lg,
     paddingVertical: 10,
     borderRadius: RADIUS.md,
   },
   addCategoryBtnText: {
-    color: COLORS.accentGreen,
+    color: COLORS.accentBlueLight,
     fontWeight: '700',
     fontSize: 13,
     fontFamily: FONTS.sansMedium,
@@ -1119,7 +1141,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   retryButton: {
-    backgroundColor: COLORS.accentGreen,
+    backgroundColor: COLORS.accentBlueVivid,
     paddingHorizontal: SPACING.xl,
     paddingVertical: 10,
     borderRadius: RADIUS.md,

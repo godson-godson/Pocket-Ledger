@@ -1,17 +1,17 @@
 import { Category, Transaction } from '../types/transaction';
 
 export const CATEGORIES: Category[] = [
-  { id: 'groceries', name: 'Groceries', icon: '🛒', type: 'expense' },
-  { id: 'dining', name: 'Dining & Cafes', icon: '☕', type: 'expense' },
-  { id: 'transport', name: 'Fuel & Transit', icon: '⛽', type: 'expense' },
-  { id: 'utilities', name: 'Bills & Utilities', icon: '⚡', type: 'expense' },
-  { id: 'shopping', name: 'Shopping', icon: '🛍️', type: 'expense' },
-  { id: 'health', name: 'Health & Medical', icon: '💊', type: 'expense' },
-  { id: 'entertainment', name: 'Entertainment', icon: '🎬', type: 'expense' },
-  { id: 'salary', name: 'Salary', icon: '💼', type: 'income' },
-  { id: 'freelance', name: 'Freelance & Side', icon: '💻', type: 'income' },
-  { id: 'investment', name: 'Investments', icon: '📈', type: 'both' },
-  { id: 'general', name: 'General', icon: '🏷️', type: 'both' },
+  { id: 'groceries', name: 'Groceries', icon: '⌸', type: 'expense' },
+  { id: 'dining', name: 'Dining & Cafes', icon: '♨', type: 'expense' },
+  { id: 'transport', name: 'Fuel & Transit', icon: '◈', type: 'expense' },
+  { id: 'utilities', name: 'Bills & Utilities', icon: 'ϟ', type: 'expense' },
+  { id: 'shopping', name: 'Shopping', icon: '▤', type: 'expense' },
+  { id: 'health', name: 'Health & Medical', icon: '✚', type: 'expense' },
+  { id: 'entertainment', name: 'Entertainment', icon: '✦', type: 'expense' },
+  { id: 'salary', name: 'Salary', icon: '▲', type: 'income' },
+  { id: 'freelance', name: 'Freelance & Side', icon: '❖', type: 'income' },
+  { id: 'investment', name: 'Investments', icon: '⬈', type: 'both' },
+  { id: 'general', name: 'General', icon: '●', type: 'both' },
 ];
 
 export const INITIAL_TRANSACTIONS: Transaction[] = [

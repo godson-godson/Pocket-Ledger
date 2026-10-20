@@ -9,6 +9,38 @@ interface CategoryBadgeProps {
   size?: 'small' | 'medium' | 'large';
 }
 
+const GLYPH_MAP: Record<string, string> = {
+  groceries: '⌸',
+  dining: '♨',
+  transport: '◈',
+  utilities: 'ϟ',
+  shopping: '▤',
+  health: '✚',
+  entertainment: '✦',
+  salary: '▲',
+  freelance: '❖',
+  investment: '⬈',
+  general: '●',
+  '🛒': '⌸',
+  '☕': '♨',
+  '⛽': '◈',
+  '⚡': 'ϟ',
+  '🛍️': '▤',
+  '🛍': '▤',
+  '💊': '✚',
+  '🎬': '✦',
+  '💼': '▲',
+  '💻': '❖',
+  '📈': '⬈',
+  '🏷️': '●',
+  '🏷': '●',
+  '💳': '▣',
+  '🪪': '⌸',
+  '⭐': '★',
+  '🚇': '►',
+  '🎫': '✦',
+};
+
 export const CategoryBadge: React.FC<CategoryBadgeProps> = ({
   icon,
   type = 'expense',
@@ -17,10 +49,13 @@ export const CategoryBadge: React.FC<CategoryBadgeProps> = ({
   const isIncome = type === 'income';
 
   const sizeStyle = {
-    small: { width: 32, height: 32, fontSize: 16 },
-    medium: { width: 42, height: 42, fontSize: 20 },
-    large: { width: 50, height: 50, fontSize: 24 },
+    small: { width: 28, height: 28, fontSize: 13 },
+    medium: { width: 38, height: 38, fontSize: 16 },
+    large: { width: 46, height: 46, fontSize: 20 },
   }[size];
+
+  const glyph = GLYPH_MAP[icon] || (isIncome ? '▲' : '−');
+  const iconColor = isIncome ? COLORS.accentGreen : COLORS.textSecondary;
 
   return (
     <View
@@ -34,7 +69,9 @@ export const CategoryBadge: React.FC<CategoryBadgeProps> = ({
         },
       ]}
     >
-      <Text style={{ fontSize: sizeStyle.fontSize }}>{icon}</Text>
+      <Text style={{ fontSize: sizeStyle.fontSize, color: iconColor, fontWeight: '700' }}>
+        {glyph}
+      </Text>
     </View>
   );
 };

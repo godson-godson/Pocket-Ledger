@@ -403,15 +403,15 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor={COLORS.accentGreen}
-              colors={[COLORS.accentGreen]}
+              tintColor={COLORS.accentBlue}
+              colors={[COLORS.accentBlue]}
               progressBackgroundColor={COLORS.surfaceElevated}
             />
           }
         >
           {isLoading && !refreshing ? (
             <View style={styles.centerContainer}>
-              <ActivityIndicator size="small" color={COLORS.accentGreen} />
+              <ActivityIndicator size="small" color={COLORS.accentBlue} />
               <Text style={styles.centerText}>Filtering SQLite records...</Text>
             </View>
           ) : queryError ? (
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
   searchWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.surfaceElevated,
     borderColor: COLORS.border,
     borderWidth: 1,
     borderRadius: RADIUS.md,
@@ -569,16 +569,16 @@ const styles = StyleSheet.create({
   },
   typeChip: {
     flex: 1,
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.surfaceElevated,
     borderColor: COLORS.border,
     borderWidth: 1,
-    borderRadius: RADIUS.sm,
-    paddingVertical: 7,
+    borderRadius: RADIUS.md,
+    paddingVertical: 8,
     alignItems: 'center',
   },
   typeChipActive: {
-    backgroundColor: COLORS.surfaceHighlight,
-    borderColor: COLORS.accentGreen,
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    borderColor: 'rgba(59, 130, 246, 0.35)',
   },
   typeChipText: {
     fontSize: 12,
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   typeChipTextActive: {
-    color: COLORS.textPrimary,
+    color: COLORS.accentBlueLight,
     fontWeight: '700',
   },
   horizontalScrollRow: {
@@ -595,16 +595,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   presetChip: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.surfaceElevated,
     borderColor: COLORS.border,
     borderWidth: 1,
     borderRadius: RADIUS.pill,
     paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingVertical: 6,
   },
   presetChipActive: {
-    backgroundColor: COLORS.accentGreenBg,
-    borderColor: COLORS.accentGreenBorder,
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    borderColor: 'rgba(59, 130, 246, 0.35)',
   },
   presetChipText: {
     fontSize: 11,
@@ -612,7 +612,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   presetChipTextActive: {
-    color: COLORS.accentGreen,
+    color: COLORS.accentBlueLight,
     fontWeight: '700',
   },
   customDateRow: {
@@ -653,17 +653,17 @@ const styles = StyleSheet.create({
   categoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.surfaceElevated,
     borderColor: COLORS.border,
     borderWidth: 1,
     borderRadius: RADIUS.sm,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 6,
     gap: 5,
   },
   categoryChipActive: {
-    backgroundColor: COLORS.surfaceHighlight,
-    borderColor: COLORS.accentGreen,
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    borderColor: 'rgba(59, 130, 246, 0.35)',
   },
   categoryChipIcon: {
     fontSize: 12,
@@ -673,19 +673,19 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   categoryChipTextActive: {
-    color: COLORS.textPrimary,
+    color: COLORS.accentBlueLight,
     fontWeight: '700',
   },
   summaryBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: COLORS.surfaceElevated,
+    backgroundColor: '#0F1422',
     borderColor: COLORS.border,
     borderTopWidth: 1,
     borderBottomWidth: 1,
     paddingHorizontal: SPACING.lg,
-    paddingVertical: 7,
+    paddingVertical: 8,
     marginTop: 4,
   },
   summaryCount: {
@@ -713,7 +713,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: FONTS.mono,
     fontWeight: '700',
-    color: COLORS.accentRose,
+    color: COLORS.textPrimary,
   },
   scrollView: {
     flex: 1,
@@ -721,11 +721,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
-    paddingBottom: 130, // Space for floating Add button
+    paddingBottom: 110,
   },
   listCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.surfaceElevated,
+    borderRadius: RADIUS.xl,
     borderWidth: 1,
     borderColor: COLORS.border,
     overflow: 'hidden',
@@ -773,7 +773,7 @@ const styles = StyleSheet.create({
   },
   fabContainer: {
     position: 'absolute',
-    bottom: SPACING.lg,
+    bottom: SPACING.md,
     left: SPACING.lg,
     right: SPACING.lg,
     alignItems: 'center',
@@ -782,15 +782,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.accentGreen,
-    paddingVertical: 14,
+    backgroundColor: COLORS.accentBlueVivid,
+    paddingVertical: 13,
     paddingHorizontal: SPACING.xl,
     borderRadius: RADIUS.pill,
     width: '100%',
-    shadowColor: COLORS.accentGreen,
+    shadowColor: COLORS.accentBlue,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
     elevation: 6,
     gap: 8,
   },
@@ -801,7 +801,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   fabLabel: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: COLORS.buttonPrimaryText,
     fontFamily: FONTS.sansMedium,

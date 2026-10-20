@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { COLORS, FONTS, RADIUS, SPACING } from '../constants/theme';
 import { formatCurrentMonth } from '../utils/formatters';
 
@@ -14,9 +14,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings, transactionCount
       <View style={styles.leftSection}>
         <View style={styles.titleRow}>
           <Text style={styles.appName}>Pocket Ledger</Text>
-          <View style={styles.badge}>
-            <View style={styles.statusDot} />
-            <Text style={styles.badgeText}>OFFLINE</Text>
+          <View style={styles.offlineBadge}>
+            <View style={styles.offlineDot} />
+            <Text style={styles.offlineBadgeText}>OFFLINE</Text>
           </View>
         </View>
         <Text style={styles.subtitle}>{formatCurrentMonth()}</Text>
@@ -26,7 +26,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings, transactionCount
         style={styles.settingsButton}
         onPress={onOpenSettings}
         activeOpacity={0.7}
-        accessibilityLabel="Open settings and diagnostics"
+        accessibilityLabel="Open settings"
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
         <Text style={styles.settingsIcon}>⚙</Text>
@@ -53,45 +53,47 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   appName: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: COLORS.textPrimary,
     fontFamily: FONTS.sansMedium,
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
-  badge: {
+  offlineBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.accentGreenBg,
-    borderColor: COLORS.accentGreenBorder,
+    backgroundColor: COLORS.surface,
+    borderColor: COLORS.border,
     borderWidth: 1,
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: RADIUS.pill,
-    gap: 5,
+    gap: 4,
   },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  offlineDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
     backgroundColor: COLORS.accentGreen,
   },
-  badgeText: {
-    fontSize: 10,
+  offlineBadgeText: {
+    fontSize: 9,
     fontWeight: '700',
-    color: COLORS.accentGreen,
-    letterSpacing: 0.6,
+    color: COLORS.textMuted,
+    fontFamily: FONTS.mono,
+    letterSpacing: 0.5,
   },
   subtitle: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
+    fontSize: 12,
+    color: COLORS.textMuted,
     marginTop: 2,
     letterSpacing: 0.2,
+    fontFamily: FONTS.sans,
   },
   settingsButton: {
-    width: 36,
-    height: 36,
-    backgroundColor: COLORS.surfaceElevated,
+    width: 34,
+    height: 34,
+    backgroundColor: COLORS.surface,
     borderColor: COLORS.border,
     borderWidth: 1,
     borderRadius: RADIUS.sm,
@@ -99,7 +101,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   settingsIcon: {
-    fontSize: 17,
-    color: COLORS.textSecondary,
+    fontSize: 15,
+    color: COLORS.textMuted,
   },
 });

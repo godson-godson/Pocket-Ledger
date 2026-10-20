@@ -30,6 +30,7 @@ import {
 export interface TransactionModalProps {
   visible: boolean;
   transaction?: Transaction | null; // If provided, modal opens in edit mode; otherwise, create mode
+  initialType?: TransactionType;
   onClose: () => void;
   onSave: (data: NewTransactionInput | UpdateTransactionInput) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
@@ -38,13 +39,14 @@ export interface TransactionModalProps {
 export const TransactionModal: React.FC<TransactionModalProps> = ({
   visible,
   transaction,
+  initialType = 'expense',
   onClose,
   onSave,
   onDelete,
 }) => {
   const isEditMode = Boolean(transaction);
 
-  const [type, setType] = useState<TransactionType>('expense');
+  const [type, setType] = useState<TransactionType>(initialType);
   const [amount, setAmount] = useState('');
   const [title, setTitle] = useState('');
   const [note, setNote] = useState('');
@@ -56,28 +58,29 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
   // Sync form state when modal opens or transaction changes
   useEffect(() => {
-    if (transaction) {
-      setType(transaction.type);
-      setAmount((transaction.amountPaise / 100).toString());
-      setTitle(transaction.title);
-      setNote(transaction.note || '');
-      setDate(transaction.date);
+    if (visible) {
+      if (transaction) {
+        setType(transaction.type);
+        setAmount((transaction.amountPaise / 100).toString());
+        setTitle(transaction.title);
+        setNote(transaction.note || '');
+        setDate(transaction.date);
 
-      const matched = CATEGORIES.find((c) => c.id === transaction.categoryId);
-      setSelectedCategory(matched || CATEGORIES[0]);
-    } else {
-      resetForm();
+        const matched = CATEGORIES.find((c) => c.id === transaction.categoryId);
+        setSelectedCategory(matched || CATEGORIES[0]);
+      } else {
+        setAmount('');
+        setTitle('');
+        setNote('');
+        setDate(getTodayDateString());
+        setType(initialType);
+        const validCategory = CATEGORIES.find(
+          (c) => c.type === 'both' || c.type === initialType
+        );
+        setSelectedCategory(validCategory || CATEGORIES[0]);
+      }
     }
-  }, [transaction, visible]);
-
-  const resetForm = () => {
-    setAmount('');
-    setTitle('');
-    setNote('');
-    setDate(getTodayDateString());
-    setType('expense');
-    setSelectedCategory(CATEGORIES[0]);
-  };
+  }, [transaction, visible, initialType]);
 
   const availableCategories = CATEGORIES.filter(
     (c) => c.type === 'both' || c.type === type
@@ -114,7 +117,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     // 3. Date validation (YYYY-MM-DD)
     const trimmedDate = date.trim();
     if (!isValidDateString(trimmedDate)) {
-      Alert.alert('Invalid Date', 'Please specify a valid date in YYYY-MM-DD format.');
+      Alert.alert('Invalid Date', 'Please specify a valid date in YYYY-MM-DD format (e.g. 2026-10-20).');
       return;
     }
 
@@ -146,7 +149,6 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         };
         await onSave(newPayload);
       }
-      resetForm();
       onClose();
     } catch (err: any) {
       console.error('[TransactionModal] Save failed:', err);
@@ -200,6 +202,14 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       }}
     >
       <View style={styles.backdrop}>
+        <TouchableOpacity
+          style={styles.backdropTouchable}
+          activeOpacity={1}
+          onPress={() => {
+            if (!isSaving && !isDeleting) onClose();
+          }}
+        />
+
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardContainer}
@@ -209,10 +219,10 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             <View style={styles.modalHeader}>
               <View>
                 <Text style={styles.modalTitle}>
-                  {isEditMode ? 'EDIT TRANSACTION' : 'NEW TRANSACTION'}
+                  {isEditMode ? 'EDIT TRANSACTION' : 'RECORD TRANSACTION'}
                 </Text>
                 <Text style={styles.modalSubtitle}>
-                  {isEditMode ? 'Modify or delete entry' : 'Store locally in SQLite'}
+                  {isEditMode ? 'Modify or delete entry in SQLite' : 'Stored offline in local SQLite'}
                 </Text>
               </View>
               <TouchableOpacity
@@ -220,6 +230,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                 style={styles.closeButton}
                 activeOpacity={0.7}
                 disabled={isSaving || isDeleting}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
@@ -228,8 +239,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             <ScrollView
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.scrollBody}
+              keyboardShouldPersistTaps="handled"
             >
-              {/* Type Switcher */}
+              {/* Type Switcher: Segmented Control */}
               <View style={styles.typeSwitcher}>
                 <TouchableOpacity
                   style={[
@@ -246,7 +258,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                       type === 'expense' && styles.typeTabTextActiveExpense,
                     ]}
                   >
-                    ↗ Expense
+                    − Expense
                   </Text>
                 </TouchableOpacity>
 
@@ -265,22 +277,19 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                       type === 'income' && styles.typeTabTextActiveIncome,
                     ]}
                   >
-                    ↙ Income
+                    + Income
                   </Text>
                 </TouchableOpacity>
               </View>
 
-              {/* Amount Input in Rupees */}
-              <View style={styles.inputGroup}>
-                <View style={styles.labelRow}>
-                  <Text style={styles.inputLabel}>AMOUNT (INR)</Text>
-                  <Text style={styles.inputHint}>Stored as integer paise</Text>
-                </View>
-                <View style={styles.amountInputWrapper}>
+              {/* Prominent Amount Input Card */}
+              <View style={styles.amountHeroCard}>
+                <Text style={styles.amountCardLabel}>ENTER AMOUNT (INR)</Text>
+                <View style={styles.amountInputRow}>
                   <Text
                     style={[
                       styles.currencySymbol,
-                      { color: type === 'income' ? COLORS.accentGreen : COLORS.textPrimary },
+                      { color: type === 'income' ? COLORS.accentGreen : COLORS.accentBlueLight },
                     ]}
                   >
                     ₹
@@ -294,8 +303,10 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                     onChangeText={setAmount}
                     maxLength={10}
                     editable={!isSaving && !isDeleting}
+                    autoFocus={!isEditMode}
                   />
                 </View>
+                <Text style={styles.amountPaiseHint}>Stored safely as integer paise in SQLite</Text>
               </View>
 
               {/* Title / Description */}
@@ -305,36 +316,13 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                   style={styles.textInput}
                   placeholder={
                     type === 'expense'
-                      ? 'e.g. Groceries, Shell Petrol, BESCOM'
-                      : 'e.g. Salary, Client Wire, Consulting'
+                      ? 'e.g. Groceries, Fuel, Electricity Bill'
+                      : 'e.g. Salary, Client Invoice, Consulting'
                   }
                   placeholderTextColor={COLORS.textDisabled}
                   value={title}
                   onChangeText={setTitle}
                   maxLength={50}
-                  editable={!isSaving && !isDeleting}
-                />
-              </View>
-
-              {/* Date Input */}
-              <View style={styles.inputGroup}>
-                <View style={styles.labelRow}>
-                  <Text style={styles.inputLabel}>TRANSACTION DATE</Text>
-                  <TouchableOpacity
-                    onPress={() => setDate(getTodayDateString())}
-                    activeOpacity={0.7}
-                    disabled={isSaving || isDeleting}
-                  >
-                    <Text style={styles.todayAction}>Set Today</Text>
-                  </TouchableOpacity>
-                </View>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor={COLORS.textDisabled}
-                  value={date}
-                  onChangeText={setDate}
-                  maxLength={10}
                   editable={!isSaving && !isDeleting}
                 />
               </View>
@@ -350,7 +338,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                         key={cat.id}
                         style={[
                           styles.categoryChip,
-                          isSelected && styles.categoryChipSelected,
+                          isSelected && (type === 'income' ? styles.categoryChipSelectedIncome : styles.categoryChipSelectedExpense),
                         ]}
                         onPress={() => setSelectedCategory(cat)}
                         activeOpacity={0.7}
@@ -371,12 +359,36 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                 </View>
               </View>
 
-              {/* Note (Optional) */}
+              {/* Date Input */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>NOTE (OPTIONAL)</Text>
+                <View style={styles.labelRow}>
+                  <Text style={styles.inputLabel}>TRANSACTION DATE</Text>
+                  <TouchableOpacity
+                    onPress={() => setDate(getTodayDateString())}
+                    activeOpacity={0.7}
+                    disabled={isSaving || isDeleting}
+                    style={styles.todayPill}
+                  >
+                    <Text style={styles.todayAction}>Today</Text>
+                  </TouchableOpacity>
+                </View>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor={COLORS.textDisabled}
+                  value={date}
+                  onChangeText={setDate}
+                  maxLength={10}
+                  editable={!isSaving && !isDeleting}
+                />
+              </View>
+
+              {/* Note / Memo (Optional) */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>NOTE / MEMO (OPTIONAL)</Text>
                 <TextInput
                   style={[styles.textInput, styles.noteInput]}
-                  placeholder="Additional remarks or details"
+                  placeholder="Add additional details or reference number..."
                   placeholderTextColor={COLORS.textDisabled}
                   value={note}
                   onChangeText={setNote}
@@ -399,7 +411,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                   {isDeleting ? (
                     <ActivityIndicator size="small" color={COLORS.accentRose} />
                   ) : (
-                    <Text style={styles.deleteButtonText}>🗑 Delete</Text>
+                    <Text style={styles.deleteButtonText}>Delete</Text>
                   )}
                 </TouchableOpacity>
               )}
@@ -416,6 +428,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               <TouchableOpacity
                 style={[
                   styles.saveButton,
+                  type === 'income' ? styles.saveButtonIncome : styles.saveButtonExpense,
                   (isSaving || isDeleting) && { opacity: 0.6 },
                 ]}
                 onPress={handleSave}
@@ -426,7 +439,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                   <ActivityIndicator size="small" color={COLORS.buttonPrimaryText} />
                 ) : (
                   <Text style={styles.saveButtonText}>
-                    {isEditMode ? 'Save Changes' : 'Save to SQLite'}
+                    {isEditMode ? 'Update Record' : 'Save to Ledger'}
                   </Text>
                 )}
               </TouchableOpacity>
@@ -441,28 +454,35 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: COLORS.overlay,
+    backgroundColor: 'rgba(0,0,0,0.80)',
     justifyContent: 'flex-end',
+  },
+  backdropTouchable: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   keyboardContainer: {
     width: '100%',
   },
   modalContent: {
     backgroundColor: COLORS.surface,
-    borderTopLeftRadius: RADIUS.xl,
-    borderTopRightRadius: RADIUS.xl,
+    borderTopLeftRadius: RADIUS.xxl,
+    borderTopRightRadius: RADIUS.xxl,
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: COLORS.border,
-    maxHeight: '90%',
-    paddingBottom: Platform.OS === 'android' ? SPACING.xl : SPACING.xxxl,
+    borderColor: COLORS.borderLight,
+    maxHeight: '92%',
+    paddingBottom: Platform.OS === 'android' ? SPACING.lg : SPACING.xxxl,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
     paddingTop: SPACING.lg,
     paddingBottom: SPACING.md,
     borderBottomWidth: 1,
@@ -493,17 +513,17 @@ const styles = StyleSheet.create({
   closeButtonText: {
     fontSize: 14,
     color: COLORS.textSecondary,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   scrollBody: {
-    paddingHorizontal: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
     paddingVertical: SPACING.md,
-    gap: SPACING.lg,
+    gap: SPACING.md,
   },
   typeSwitcher: {
     flexDirection: 'row',
     backgroundColor: COLORS.surfaceElevated,
-    borderColor: COLORS.border,
+    borderColor: COLORS.borderLight,
     borderWidth: 1,
     borderRadius: RADIUS.md,
     padding: 3,
@@ -515,8 +535,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   typeTabActiveExpense: {
-    backgroundColor: COLORS.accentRoseBg,
-    borderColor: COLORS.accentRoseBorder,
+    backgroundColor: COLORS.surfaceHighlight,
+    borderColor: COLORS.borderLight,
     borderWidth: 1,
   },
   typeTabActiveIncome: {
@@ -530,12 +550,55 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
   },
   typeTabTextActiveExpense: {
-    color: COLORS.accentRose,
+    color: COLORS.textPrimary,
     fontWeight: '700',
   },
   typeTabTextActiveIncome: {
     color: COLORS.accentGreen,
     fontWeight: '700',
+  },
+  amountHeroCard: {
+    backgroundColor: COLORS.surfaceElevated,
+    borderRadius: RADIUS.xl,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    paddingVertical: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
+    alignItems: 'center',
+  },
+  amountCardLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+    fontFamily: FONTS.mono,
+    letterSpacing: 1,
+    marginBottom: SPACING.xs,
+  },
+  amountInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  currencySymbol: {
+    fontSize: 32,
+    fontWeight: '700',
+    fontFamily: FONTS.mono,
+    marginRight: 6,
+  },
+  amountInput: {
+    fontSize: 34,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    fontFamily: FONTS.mono,
+    minWidth: 120,
+    textAlign: 'center',
+    paddingVertical: 4,
+  },
+  amountPaiseHint: {
+    fontSize: 10,
+    color: COLORS.textMuted,
+    fontFamily: FONTS.mono,
+    marginTop: 4,
   },
   inputGroup: {
     gap: 6,
@@ -552,38 +615,19 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.mono,
     letterSpacing: 0.8,
   },
-  inputHint: {
-    fontSize: 10,
-    color: COLORS.textMuted,
-    fontFamily: FONTS.mono,
+  todayPill: {
+    backgroundColor: COLORS.accentBlueBg,
+    borderColor: COLORS.accentBlueBorder,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: RADIUS.xs,
   },
   todayAction: {
-    fontSize: 11,
-    color: COLORS.accentGreen,
-    fontWeight: '600',
-  },
-  amountInputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.surfaceElevated,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: SPACING.md,
-  },
-  currencySymbol: {
-    fontSize: 24,
+    fontSize: 10,
+    color: COLORS.accentBlueLight,
     fontWeight: '700',
     fontFamily: FONTS.mono,
-    marginRight: 6,
-  },
-  amountInput: {
-    flex: 1,
-    fontSize: 26,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    fontFamily: FONTS.mono,
-    paddingVertical: 12,
   },
   textInput: {
     backgroundColor: COLORS.surfaceElevated,
@@ -591,12 +635,12 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     borderRadius: RADIUS.md,
     paddingHorizontal: SPACING.md,
-    paddingVertical: 12,
+    paddingVertical: 11,
     fontSize: 14,
     color: COLORS.textPrimary,
   },
   noteInput: {
-    height: 60,
+    height: 56,
     textAlignVertical: 'top',
   },
   categoryGrid: {
@@ -612,15 +656,19 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     borderRadius: RADIUS.sm,
     paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingVertical: 7,
     gap: 6,
   },
-  categoryChipSelected: {
-    backgroundColor: COLORS.surfaceHighlight,
+  categoryChipSelectedExpense: {
+    backgroundColor: COLORS.accentBlueBg,
+    borderColor: COLORS.accentBlue,
+  },
+  categoryChipSelectedIncome: {
+    backgroundColor: COLORS.accentGreenBg,
     borderColor: COLORS.accentGreen,
   },
   categoryIcon: {
-    fontSize: 14,
+    fontSize: 13,
   },
   categoryText: {
     fontSize: 12,
@@ -632,19 +680,19 @@ const styles = StyleSheet.create({
   },
   footerRow: {
     flexDirection: 'row',
-    paddingHorizontal: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
     paddingTop: SPACING.md,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
     gap: SPACING.sm,
   },
   deleteButton: {
-    flex: 1.1,
-    backgroundColor: COLORS.surfaceElevated,
+    flex: 1,
+    backgroundColor: COLORS.accentRoseBg,
     borderColor: COLORS.accentRoseBorder,
     borderWidth: 1,
     borderRadius: RADIUS.md,
-    paddingVertical: 14,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -659,22 +707,27 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     borderWidth: 1,
     borderRadius: RADIUS.md,
-    paddingVertical: 14,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: COLORS.textSecondary,
   },
   saveButton: {
     flex: 1.6,
-    backgroundColor: COLORS.accentGreen,
     borderRadius: RADIUS.md,
-    paddingVertical: 14,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  saveButtonExpense: {
+    backgroundColor: COLORS.accentBlue,
+  },
+  saveButtonIncome: {
+    backgroundColor: COLORS.accentGreenMuted,
   },
   saveButtonText: {
     fontSize: 13,

@@ -32,7 +32,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       {/* Section Header */}
       <View style={styles.headerRow}>
         <View style={styles.titleWithCount}>
-          <Text style={styles.sectionTitle}>RECENT TRANSACTIONS</Text>
+          <Text style={styles.sectionTitle}>RECENT</Text>
           <View style={styles.countBadge}>
             <Text style={styles.countText}>{transactions.length}</Text>
           </View>
@@ -45,12 +45,12 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             activeOpacity={0.7}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={styles.viewAllText}>Full History →</Text>
+            <Text style={styles.viewAllText}>All →</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      {/* Filter Chips Bar */}
+      {/* Filter Chips */}
       <View style={styles.filterBar}>
         <View style={styles.filterContainer}>
           {filterOptions.map((opt) => {
@@ -58,10 +58,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             return (
               <TouchableOpacity
                 key={opt.value}
-                style={[
-                  styles.filterChip,
-                  isActive && styles.filterChipActive,
-                ]}
+                style={[styles.filterChip, isActive && styles.filterChipActive]}
                 onPress={() => onFilterChange(opt.value)}
                 activeOpacity={0.7}
                 hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
@@ -80,29 +77,29 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         </View>
       </View>
 
-      {/* Transactions List Card */}
+      {/* List Card */}
       <View style={styles.listCard}>
         {isLoading ? (
           <View style={styles.emptyContainer}>
-            <ActivityIndicator size="small" color={COLORS.accentGreen} />
-            <Text style={styles.loadingText}>Reading SQLite database...</Text>
+            <ActivityIndicator size="small" color={COLORS.accentBlue} />
+            <Text style={styles.loadingText}>Loading…</Text>
           </View>
         ) : transactions.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>
-              {activeFilter === 'expense' ? '↗' : activeFilter === 'income' ? '↙' : '📋'}
-            </Text>
+            <View style={styles.emptyIconCircle}>
+              <Text style={styles.emptyIcon}>≡</Text>
+            </View>
             <Text style={styles.emptyTitle}>
               {activeFilter === 'expense'
-                ? 'No expenses recorded'
+                ? 'No expenses logged'
                 : activeFilter === 'income'
-                ? 'No income recorded'
-                : 'No transactions recorded yet'}
+                ? 'No income logged'
+                : 'No transactions yet'}
             </Text>
             <Text style={styles.emptySubtitle}>
               {activeFilter === 'all'
-                ? 'Your offline ledger is empty. Tap "+ Add Transaction" below to log an entry.'
-                : `No transactions found matching "${activeFilter}".`}
+                ? 'Your offline ledger is empty. Add a transaction to get started.'
+                : `No ${activeFilter} transactions found.`}
             </Text>
           </View>
         ) : (
@@ -122,7 +119,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: SPACING.lg,
-    marginTop: SPACING.lg,
+    marginTop: SPACING.md,
     marginBottom: SPACING.md,
   },
   headerRow: {
@@ -137,11 +134,11 @@ const styles = StyleSheet.create({
     gap: SPACING.xs,
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
-    color: COLORS.textSecondary,
+    color: COLORS.textMuted,
     fontFamily: FONTS.mono,
-    letterSpacing: 0.8,
+    letterSpacing: 0.9,
   },
   countBadge: {
     backgroundColor: COLORS.surfaceElevated,
@@ -152,9 +149,9 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.pill,
   },
   countText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textMuted,
     fontFamily: FONTS.mono,
   },
   viewAllButton: {
@@ -164,45 +161,45 @@ const styles = StyleSheet.create({
   viewAllText: {
     fontSize: 11,
     fontWeight: '600',
-    color: COLORS.accentGreen,
+    color: COLORS.accentBlue,
     fontFamily: FONTS.mono,
   },
   filterBar: {
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   filterContainer: {
     flexDirection: 'row',
     backgroundColor: COLORS.surface,
     borderColor: COLORS.border,
     borderWidth: 1,
-    borderRadius: RADIUS.sm,
-    padding: 2,
-    gap: 2,
+    borderRadius: RADIUS.md,
+    padding: 3,
+    gap: 3,
   },
   filterChip: {
     flex: 1,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: RADIUS.xs,
+    borderRadius: RADIUS.sm,
     alignItems: 'center',
   },
   filterChipActive: {
-    backgroundColor: COLORS.surfaceHighlight,
-    borderColor: COLORS.borderLight,
+    backgroundColor: COLORS.accentBlueBg,
+    borderColor: COLORS.accentBlueBorder,
     borderWidth: 1,
   },
   filterChipText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
     color: COLORS.textMuted,
   },
   filterChipTextActive: {
-    color: COLORS.textPrimary,
+    color: COLORS.accentBlueLight,
     fontWeight: '700',
   },
   listCard: {
     backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.xl,
     borderWidth: 1,
     borderColor: COLORS.border,
     overflow: 'hidden',
@@ -211,29 +208,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: SPACING.xxxl,
-    paddingHorizontal: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
+    gap: SPACING.sm,
+  },
+  emptyIconCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: RADIUS.pill,
+    backgroundColor: COLORS.surfaceElevated,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
   },
   emptyIcon: {
-    fontSize: 32,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.sm,
+    fontSize: 18,
+    color: COLORS.textMuted,
   },
   emptyTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: COLORS.textSecondary,
-    marginBottom: 4,
   },
   emptySubtitle: {
     fontSize: 12,
     color: COLORS.textMuted,
     textAlign: 'center',
-    lineHeight: 18,
-    maxWidth: 280,
+    lineHeight: 17,
+    maxWidth: 270,
   },
   loadingText: {
     fontSize: 12,
     color: COLORS.textMuted,
-    marginTop: SPACING.sm,
   },
 });

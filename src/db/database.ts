@@ -58,6 +58,25 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
         );
 
         CREATE INDEX IF NOT EXISTS idx_budgets_lookup ON budgets(period_type, period_start_date);
+
+        -- Create wallet_items table for offline cards, IDs, and passes
+        CREATE TABLE IF NOT EXISTS wallet_items (
+          id TEXT PRIMARY KEY NOT NULL,
+          type TEXT NOT NULL CHECK(type IN ('payment', 'id_card', 'membership', 'loyalty', 'transit', 'custom')),
+          name TEXT NOT NULL,
+          issuer TEXT,
+          holder_name TEXT,
+          identifier TEXT,
+          expiry_date TEXT,
+          color TEXT NOT NULL,
+          is_pinned INTEGER NOT NULL DEFAULT 0 CHECK(is_pinned IN (0, 1)),
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          note TEXT
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_wallet_pinned ON wallet_items(is_pinned DESC, updated_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_wallet_type ON wallet_items(type);
       `);
 
       dbInstance = db;
